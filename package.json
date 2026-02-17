@@ -1,6 +1,6 @@
 {
   "name": "patchgate",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Policy enforcement and rollback for AI agent code edits",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -19,8 +19,18 @@
     "test": "jest --coverage"
   },
   "keywords": [
-    "ai", "patch", "diff", "agent", "code-safety", "llm", "patchgate",
-    "langchain", "langgraph", "claude", "openai", "agent-safety"
+    "ai",
+    "patch",
+    "diff",
+    "agent",
+    "code-safety",
+    "llm",
+    "patchgate",
+    "langchain",
+    "langgraph",
+    "claude",
+    "openai",
+    "agent-safety"
   ],
   "author": "",
   "license": "MIT",
@@ -48,6 +58,8 @@
   "jest": {
     "preset": "ts-jest",
     "testEnvironment": "node",
-    "testMatch": ["**/tests/**/*.test.ts"]
+    "testMatch": [
+      "**/tests/**/*.test.ts"
+    ]
   }
 }

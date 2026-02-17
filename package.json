@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "patchgate": "./dist/cli.js"
+    "patchgate": "dist/cli.js"
   },
   "files": [
     "dist/**/*",

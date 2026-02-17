@@ -1,6 +1,6 @@
 {
   "name": "patchgate",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Policy enforcement and rollback for AI agent code edits",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -34,12 +34,11 @@
   ],
   "author": "",
   "license": "MIT",
- "repository": {
-  "type": "git",
-  "url": "git+https://github.com/shivae372-hub/patchgate.git"
-},
-"homepage": "https://github.com/shivae372-hub/patchgate#readme",
-
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shivae372-hub/patchgate.git"
+  },
+  "homepage": "https://github.com/shivae372-hub/patchgate#readme",
   "engines": {
     "node": ">=18.0.0"
   },

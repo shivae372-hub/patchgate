@@ -1,0 +1,53 @@
+name: Validate Agent Patch
+
+on:
+  pull_request:
+    paths:
+      - "proposed-patch.json"
+  workflow_dispatch:
+    inputs:
+      patch_file:
+        description: "Path to patch file"
+        required: false
+        default: "proposed-patch.json"
+
+jobs:
+  validate:
+    name: PatchGate Policy Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+
+      - name: Install PatchGate
+        run: npm install -g patchgate
+
+      - name: Check patch file exists
+        run: |
+          PATCH_FILE="${{ inputs.patch_file || 'proposed-patch.json' }}"
+          if [ ! -f "$PATCH_FILE" ]; then
+            echo "No patch file found — skipping"
+            exit 0
+          fi
+          echo "PATCH_FILE=$PATCH_FILE" >> $GITHUB_ENV
+
+      - name: Preview patch (no writes)
+        if: env.PATCH_FILE != ''
+        run: patchgate preview "$PATCH_FILE"
+
+      - name: Validate patch policy
+        if: env.PATCH_FILE != ''
+        run: patchgate apply "$PATCH_FILE"
+        env:
+          CI: true
+
+      - name: Upload audit log
+        if: always() && env.PATCH_FILE != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: patchgate-audit-log
+          path: .patchgate/audit.log
+          if-no-files-found: ignore

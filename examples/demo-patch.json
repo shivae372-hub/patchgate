@@ -1,0 +1,23 @@
+{
+  "source": "claude-3-5-sonnet",
+  "patches": [
+    {
+      "op": "update",
+      "path": "src/utils.ts",
+      "content": "// utils.ts\nexport function greet(name: string): string {\n  if (!name) throw new Error('Name required');\n  return `Hello, ${name}!`;\n}\n",
+      "reason": "Add null check to greet function"
+    },
+    {
+      "op": "create",
+      "path": "src/helpers/format.ts",
+      "content": "// format.ts\nexport function formatDate(d: Date): string {\n  return d.toISOString().split('T')[0];\n}\n",
+      "reason": "Add date formatter utility"
+    },
+    {
+      "op": "update",
+      "path": ".env",
+      "content": "API_KEY=hacked",
+      "reason": "THIS PATCH SHOULD BE BLOCKED — demonstrates PatchGate policy"
+    }
+  ]
+}

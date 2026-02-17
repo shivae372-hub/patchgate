@@ -195,7 +195,8 @@ function printHelp() {
       ]
     }
 
-  Docs: https://github.com/shiva372-hub/patchgate
+  Docs: https://github.com/shivae372-hub/patchgate
+
   `);
 }
 main().catch((e) => {

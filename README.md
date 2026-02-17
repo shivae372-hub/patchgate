@@ -82,23 +82,27 @@ Apply these changes? [y/N] y
    To undo: patchgate rollback ".patchgate/snapshots/patchgate-snapshot-xxx"
 
 ✓ Done.
+```
 The .env file was never touched. Everything is logged.
 
-Install
-npm install patchgate
 
+Install
+```
+npm install patchgate
+```
 
 CLI usage:
-
+```
 npx patchgate --help
-
+```
 
 Or global install:
-
+```
 npm install -g patchgate
-
+```
 Usage
 As a Library (inside your agent)
+```
 import { run } from "patchgate";
 
 const result = await run({
@@ -115,8 +119,9 @@ const result = await run({
 
 console.log(result.applied); // ["src/index.ts"]
 console.log(result.blocked); // anything policy blocked
-
+```
 As a CLI
+```
 # Preview changes (no writes)
 patchgate preview my-patch.json
 
@@ -128,6 +133,7 @@ patchgate rollback .patchgate/snapshots/patchgate-snapshot-xxx
 
 # View audit history
 patchgate history
+```
 
 What PatchGate Does
 Feature	Description
@@ -140,7 +146,7 @@ Framework-agnostic	Works with any agent that can output JSON patches
 Configuration
 
 Create patchgate.config.json in your project root:
-
+```
 {
   "blocklist": [
     ".env",
@@ -154,10 +160,10 @@ Create patchgate.config.json in your project root:
   "enableSnapshot": true,
   "runTypecheck": false
 }
-
+```
 
 Or inline:
-
+```
 await run(patchSet, {
   config: {
     blocklist: [".env", "*.secret"],
@@ -165,8 +171,9 @@ await run(patchSet, {
     enableSnapshot: true
   }
 });
-
+```
 Patch Format
+```
 {
   "source": "my-agent",
   "patches": [
@@ -176,7 +183,7 @@ Patch Format
     { "op": "rename", "path": "src/a.ts", "newPath": "src/b.ts" }
   ]
 }
-
+```
 
 Any AI agent that outputs JSON can use PatchGate.
 
@@ -197,19 +204,19 @@ Secure “AI pull request” patch validation
 CI Integration
 
 Validate AI-proposed patches before merge:
-
+```
 - name: Validate agent patch
   run: patchgate apply proposed-patch.json
   env:
     CI: true
-
+```
 
 See .github/workflows/agent-patch-validate.yml.
 
 Audit Log
 
 Every apply is recorded in .patchgate/audit.log:
-
+```
 {
   "timestamp": "2026-02-17T10:23:01Z",
   "source": "claude",
@@ -222,7 +229,7 @@ Every apply is recorded in .patchgate/audit.log:
     }
   ]
 }
-
+```
 Integrations (Coming Next)
 
 PatchGate works with any agent framework:
@@ -253,7 +260,7 @@ MIT
 
 PatchGate = the open safety primitive for AI filesystem writes.
 
-
+```
 ---
 
 # ✅ What This Final README Fixes
@@ -291,3 +298,4 @@ and you can post:
 > “Drop-in filesystem firewall for OpenAI agents”
 
 Just reply: **yes, build the OpenAI adapter next**.
+```

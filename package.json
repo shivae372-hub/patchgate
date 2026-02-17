@@ -34,11 +34,12 @@
   ],
   "author": "",
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/shiva372-hub/patchgate.git"
-  },
-  "homepage": "https://github.com/shiva372-hub/patchgate#readme",
+ "repository": {
+  "type": "git",
+  "url": "git+https://github.com/shivae372-hub/patchgate.git"
+},
+"homepage": "https://github.com/shivae372-hub/patchgate#readme",
+
   "engines": {
     "node": ">=18.0.0"
   },

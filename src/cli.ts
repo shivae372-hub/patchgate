@@ -181,7 +181,7 @@ function printHelp() {
       ]
     }
 
-  Docs: https://github.com/YOUR_USERNAME/patchgate
+  Docs: https://github.com/shiva372-hub/patchgate
   `);
 }
 

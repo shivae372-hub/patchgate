@@ -26,9 +26,9 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/YOUR_USERNAME/patchgate.git"
+    "url": "https://github.com/shiva372-hub/patchgate.git"
   },
-  "homepage": "https://github.com/YOUR_USERNAME/patchgate#readme",
+  "homepage": "https://github.com/shiva372-hub/patchgate#readme",
   "engines": {
     "node": ">=18.0.0"
   },

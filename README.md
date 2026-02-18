@@ -1,6 +1,10 @@
 # PatchGate
 
+ HEAD
 ![CI](https://github.com/shivae372-hub/patchgate/actions/workflows/ci.yml/badge.svg)
+
+![CI](https://github.com/shiva372-hub/patchgate/actions/workflows/ci.yml/badge.svg)
+ 646d963 (docs: finalize OpenAI adapter documentation)
 ![npm](https://img.shields.io/npm/v/patchgate)
 ![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
 ![Node >=18](https://img.shields.io/badge/node-%3E%3D18-brightgreen)
@@ -86,12 +90,20 @@ Apply these changes? [y/N] y
 The .env file was never touched. Everything is logged.
 
 
+HEAD
 Install
+
+---
+
+## Install
+
+ 646d963 (docs: finalize OpenAI adapter documentation)
 ```
 npm install patchgate
 ```
 
 CLI usage:
+ HEAD
 ```
 npx patchgate --help
 ```
@@ -102,6 +114,23 @@ npm install -g patchgate
 ```
 Usage
 As a Library (inside your agent)
+
+```
+npx patchgate --help
+```
+Or global install
+
+```
+npm install -g patchgate
+```
+
+---
+
+## Usage
+
+### As a library (in your agent)
+
+ 646d963 (docs: finalize OpenAI adapter documentation)
 ```
 import { run } from "patchgate";
 
@@ -120,9 +149,17 @@ const result = await run({
 console.log(result.applied); // ["src/index.ts"]
 console.log(result.blocked); // anything policy blocked
 ```
+ HEAD
 As a CLI
 ```
 # Preview changes (no writes)
+
+
+### As a CLI
+
+```
+# Preview what will change — no writes
+ 646d963 (docs: finalize OpenAI adapter documentation)
 patchgate preview my-patch.json
 
 # Apply with policy + snapshot + audit log
@@ -240,7 +277,22 @@ OpenAI function calling — same adapter pattern
 
 LangGraph — run as a safety node before filesystem writes
 
+ HEAD
 Custom agents — JSON in, safe writes out
+
+| Component | Status |
+|---|---|
+| Core patch engine | ✅ Stable |
+| Policy enforcement | ✅ Stable |
+| Atomic writes | ✅ Stable |
+| Snapshot + rollback | ✅ Stable |
+| Audit logging | ✅ Stable |
+| CLI | ✅ Stable |
+| CI GitHub Action | ✅ Stable |
+| OpenAI adapter | ✅ Stable |
+| Claude adapter | 🔜 Coming |
+| LangGraph adapter | 🔜 Coming |
+ 646d963 (docs: finalize OpenAI adapter documentation)
 
 Status
 Component	Status

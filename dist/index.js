@@ -17,7 +17,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.printHistory = exports.readLog = exports.saveSnapshot = exports.generateDiff = exports.rollback = exports.applyPatches = exports.enforcePolicy = void 0;
+exports.createPatchGateFileTools = exports.printHistory = exports.readLog = exports.saveSnapshot = exports.generateDiff = exports.rollback = exports.applyPatches = exports.enforcePolicy = void 0;
 exports.run = run;
 exports.createPatchSet = createPatchSet;
 const crypto_1 = require("crypto");
@@ -36,6 +36,9 @@ Object.defineProperty(exports, "saveSnapshot", { enumerable: true, get: function
 var logger_2 = require("./logger");
 Object.defineProperty(exports, "readLog", { enumerable: true, get: function () { return logger_2.readLog; } });
 Object.defineProperty(exports, "printHistory", { enumerable: true, get: function () { return logger_2.printHistory; } });
+var fileTools_1 = require("./adapters/openai/fileTools");
+Object.defineProperty(exports, "createPatchGateFileTools", { enumerable: true, get: function () { return fileTools_1.createPatchGateFileTools; } });
+__exportStar(require("./adapters/openai/types"), exports);
 /**
  * THE MAIN FUNCTION.
  *

@@ -18,6 +18,9 @@ export * from "./types";
 export { enforcePolicy } from "./policy";
 export { applyPatches, rollback, generateDiff, saveSnapshot } from "./executor";
 export { readLog, printHistory } from "./logger";
+export { createPatchGateFileTools } from "./adapters/openai/fileTools";
+export * from "./adapters/openai/types";
+
 
 export interface RunOptions {
   /** Working directory (defaults to process.cwd()) */

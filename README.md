@@ -248,20 +248,3 @@ PatchGate = the open safety primitive for AI filesystem writes.
 
 ````
 
----
-
-# ✅ What You Must Do Now
-
-1. Replace your GitHub `README.md` fully with this clean one  
-2. Delete the garbage bottom part (“What this README fixes…”)
-3. Commit:
-
-```text
-git add README.md
-git commit -m "docs: clean README"
-git push
-````
-
----
-
-If you want, I can also clean your `OPENAI_ADAPTER.md` the same way (it also needs formatting fixes).

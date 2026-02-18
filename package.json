@@ -1,6 +1,6 @@
 {
   "name": "patchgate",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Policy enforcement and rollback for AI agent code edits",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

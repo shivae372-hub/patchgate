@@ -13,39 +13,55 @@ This makes OpenAI agents safe by default:
 
 ## Quick Start
 
-Install:
+Install PatchGate:
 
-```
+```text
 npm install patchgate
-```
-Create OpenAI Tools
-```
+````
+
+---
+
+## Create OpenAI Tools
+
+PatchGate provides OpenAI-compatible filesystem tools:
+
+```ts
 import { createPatchGateFileTools } from "patchgate";
 
 const tools = createPatchGateFileTools({
   source: "openai-agent"
 });
 ```
-This provides 3 safe filesystem tools:
 
-patchgate_write_file
+This creates three protected tools:
 
-patchgate_delete_file
+* `patchgate_write_file`
+* `patchgate_delete_file`
+* `patchgate_rename_file`
 
-patchgate_rename_file
+---
 
-Using with OpenAI Function Calling
-```
+## Using with OpenAI Function Calling
+
+Example integration with the OpenAI SDK:
+
+```ts
 import OpenAI from "openai";
 import { createPatchGateFileTools } from "patchgate";
 
 const client = new OpenAI();
-const patchgateTools = createPatchGateFileTools();
+
+const patchgateTools = createPatchGateFileTools({
+  source: "openai-agent"
+});
 
 const response = await client.chat.completions.create({
   model: "gpt-4o",
   messages: [
-    { role: "user", content: "Update src/index.ts but never touch .env" }
+    {
+      role: "user",
+      content: "Update src/index.ts but never touch .env"
+    }
   ],
   tools: patchgateTools.map((t) => ({
     type: "function",
@@ -57,8 +73,26 @@ const response = await client.chat.completions.create({
   }))
 });
 ```
-Executing Tool Calls Safely
+
+---
+
+## Executing Tool Calls Safely
+
+OpenAI may return tool calls like:
+
+```json
+{
+  "name": "patchgate_write_file",
+  "arguments": {
+    "path": "src/index.ts",
+    "content": "..."
+  }
+}
 ```
+
+Execute them through PatchGate:
+
+```ts
 const toolCalls = response.choices[0].message.tool_calls;
 
 if (toolCalls) {
@@ -81,48 +115,45 @@ if (toolCalls) {
   }
 }
 ```
-What Happens Internally
+
+---
+
+## What Happens Internally
+
 Every OpenAI filesystem tool call becomes a PatchGate patch:
 
-Policy check
-
-Diff preview
-
-Atomic apply
-
-Snapshot saved
-
-Audit log written
+* Policy check
+* Diff preview
+* Atomic apply
+* Snapshot saved
+* Audit log written
 
 PatchGate ensures the agent cannot:
 
-Write .env
+* Write `.env`
+* Escape the repo (`../`)
+* Touch system paths (`C:\Windows\...`)
+* Corrupt files with partial writes
 
-Escape the repo (../)
+---
 
-Touch system paths (C:\Windows\...)
+## Why This Matters
 
-Corrupt files with partial writes
-
-Why This Matters
 Without PatchGate:
 
-Agents write files directly
-
-No rollback
-
-No audit
-
-Secrets can be overwritten
+* Agents write files directly
+* No rollback
+* No audit trail
+* Secrets can be overwritten
 
 With PatchGate:
 
-Every write is policy-gated
+* Every write is policy-gated
+* Rollback is instant
+* Logs provide compliance
+* Agents become safe in CI and production
 
-Rollback is instant
-
-Logs provide compliance
-
-Agents become safe in CI and production
+---
 
 PatchGate is the open safety firewall for OpenAI filesystem writes.
+

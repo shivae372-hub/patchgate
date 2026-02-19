@@ -75,6 +75,26 @@ export async function run(
     fullPatchSet.blocklist
   );
 
+// 🚨 CI Strict Mode: fail immediately if anything is blocked
+if (config.failOnBlocked && blocked.length > 0) {
+  return {
+    success: false,
+    applied: [],
+    skipped: [],
+    errors: [
+      {
+        path: "__policy__",
+        message: `Blocked patches detected (${blocked.length}). CI strict mode enabled.`,
+      },
+    ],
+    blocked: blocked.map((b) => ({
+      path: b.patch.path,
+      reason: b.reason,
+    })),
+  };
+}
+
+
   // 2. Optional preview
   if (options.onPreview && allowed.length > 0) {
     const diffs = allowed.map((p) => generateDiff(p, workdir));

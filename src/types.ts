@@ -60,33 +60,27 @@ export interface ApplyResult {
 }
 
 export interface PatchGateConfig {
-  /** Files/patterns the AI is NEVER allowed to touch */
   blocklist: string[];
-
-  /** If true, ask the user before applying each change */
   requireApproval: boolean;
-
-  /** If true, save a snapshot before applying (enables rollback) */
   enableSnapshot: boolean;
-
-  /** If true, run `tsc --noEmit` after applying to catch type errors */
   runTypecheck: boolean;
 
-  /** Custom command to run after applying (e.g. "npm test") */
-  validateCommand?: string;
+  /**
+   * CI mode: if true, PatchGate fails the run
+   * when ANY patch is blocked.
+   *
+   * Default: false
+   */
+  failOnBlocked?: boolean;
 }
 
+
 export const DEFAULT_CONFIG: PatchGateConfig = {
-  blocklist: [
-    ".env",
-    ".env.*",
-    "*.pem",
-    "*.key",
-    "*.secret",
-    "node_modules/**",
-    ".git/**",
-  ],
-  requireApproval: false,
+  blocklist: [".env", ".env.*", "*.pem", "*.key", "node_modules/**", ".git/**"],
+  requireApproval: true,
   enableSnapshot: true,
   runTypecheck: false,
+
+  failOnBlocked: false,
 };
+

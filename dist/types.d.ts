@@ -42,16 +42,17 @@ export interface ApplyResult {
     snapshotPath?: string;
 }
 export interface PatchGateConfig {
-    /** Files/patterns the AI is NEVER allowed to touch */
     blocklist: string[];
-    /** If true, ask the user before applying each change */
     requireApproval: boolean;
-    /** If true, save a snapshot before applying (enables rollback) */
     enableSnapshot: boolean;
-    /** If true, run `tsc --noEmit` after applying to catch type errors */
     runTypecheck: boolean;
-    /** Custom command to run after applying (e.g. "npm test") */
-    validateCommand?: string;
+    /**
+     * CI mode: if true, PatchGate fails the run
+     * when ANY patch is blocked.
+     *
+     * Default: false
+     */
+    failOnBlocked?: boolean;
 }
 export declare const DEFAULT_CONFIG: PatchGateConfig;
 //# sourceMappingURL=types.d.ts.map

@@ -1,5 +1,4 @@
 // src/adapters/openai/types.ts
-// PatchGate OpenAI Adapter — Type Definitions
 
 export interface OpenAIWriteFileArgs {
   path: string;
@@ -21,4 +20,17 @@ export interface PatchGateToolResult {
   blocked: { path: string; reason: string }[];
   snapshotPath?: string;
   message: string;
+}
+
+/**
+ * A single OpenAI-compatible PatchGate tool
+ */
+export interface PatchGateTool<TArgs> {
+  type: "function";
+  function: {
+    name: string;
+    description: string;
+    parameters: any;
+  };
+  execute: (args: TArgs) => Promise<PatchGateToolResult>;
 }

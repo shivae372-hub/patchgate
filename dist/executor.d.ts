@@ -10,7 +10,7 @@ export declare function rollback(snapshotDir: string, workdir?: string): void;
 /**
  * Apply already-approved patches.
  */
-export declare function applyPatches(patches: FilePatch[], workdir?: string, enableSnapshot?: boolean): ApplyResult;
+export declare function applyPatches(patches: FilePatch[], workdir?: string, enableSnapshot?: boolean, dryRun?: boolean): ApplyResult;
 /**
  * Generate readable diff preview.
  */

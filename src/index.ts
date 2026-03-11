@@ -13,13 +13,17 @@ import {
 import { enforcePolicy } from "./policy";
 import { applyPatches, generateDiff } from "./executor";
 import { buildLogEntry, writeLog } from "./logger";
+import { loadConfig } from "./config";
 
 export * from "./types";
 export { enforcePolicy } from "./policy";
 export { applyPatches, rollback, generateDiff, saveSnapshot } from "./executor";
 export { readLog, printHistory } from "./logger";
+export { loadConfig, loadConfigFile, mergeConfig } from "./config";
 export { createPatchGateFileTools } from "./adapters/openai/fileTools";
 export * from "./adapters/openai/types";
+export { createClaudeFileTools } from "./adapters/claude/fileTools";
+export * from "./adapters/claude/types";
 
 
 export interface RunOptions {
@@ -57,8 +61,23 @@ export async function run(
 ): Promise<ApplyResult & { blocked: { path: string; reason: string }[] }> {
   const startTime = Date.now();
   const workdir = options.workdir ?? process.cwd();
+
+  // Load config from patchgate.config.json if it exists
+  const fileConfig = loadConfig(workdir);
+
+  // Map file config to PatchGateConfig (merge with options.config)
   const config: PatchGateConfig = {
     ...DEFAULT_CONFIG,
+    // Merge file config blocklist with default blocklist
+    blocklist: [
+      ...DEFAULT_CONFIG.blocklist,
+      ...(fileConfig.blocklist ?? []),
+    ],
+    // Override with failOnBlocked from file config if present
+    ...(fileConfig.failOnBlocked !== undefined && {
+      failOnBlocked: fileConfig.failOnBlocked,
+    }),
+    // Apply runtime overrides (options.config) last — highest precedence
     ...(options.config ?? {}),
   };
 
@@ -120,7 +139,7 @@ if (config.failOnBlocked && blocked.length > 0) {
   }
 
   // 3. Apply
-  const result = applyPatches(allowed, workdir, config.enableSnapshot);
+  const result = applyPatches(allowed, workdir, config.enableSnapshot, config.dryRun);
 
   // 4. Log
   const logEntry = buildLogEntry(

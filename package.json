@@ -1,6 +1,6 @@
 {
   "name": "patchgate",
-  "version": "0.3.3",
+  "version": "0.4.0",
   "description": "Policy enforcement and rollback for AI agent code edits",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -44,8 +44,7 @@
   },
   "dependencies": {
     "diff": "^5.1.0",
-    "micromatch": "^4.0.7",
-    "patchgate": "^0.3.3"
+    "micromatch": "^4.0.7"
   },
   "devDependencies": {
     "@types/diff": "^5.0.9",

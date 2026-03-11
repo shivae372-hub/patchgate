@@ -17,7 +17,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createPatchGateFileTools = exports.printHistory = exports.readLog = exports.saveSnapshot = exports.generateDiff = exports.rollback = exports.applyPatches = exports.enforcePolicy = void 0;
+exports.createClaudeFileTools = exports.createPatchGateFileTools = exports.mergeConfig = exports.loadConfigFile = exports.loadConfig = exports.printHistory = exports.readLog = exports.saveSnapshot = exports.generateDiff = exports.rollback = exports.applyPatches = exports.enforcePolicy = void 0;
 exports.run = run;
 exports.createPatchSet = createPatchSet;
 const crypto_1 = require("crypto");
@@ -25,6 +25,7 @@ const types_1 = require("./types");
 const policy_1 = require("./policy");
 const executor_1 = require("./executor");
 const logger_1 = require("./logger");
+const config_1 = require("./config");
 __exportStar(require("./types"), exports);
 var policy_2 = require("./policy");
 Object.defineProperty(exports, "enforcePolicy", { enumerable: true, get: function () { return policy_2.enforcePolicy; } });
@@ -36,9 +37,16 @@ Object.defineProperty(exports, "saveSnapshot", { enumerable: true, get: function
 var logger_2 = require("./logger");
 Object.defineProperty(exports, "readLog", { enumerable: true, get: function () { return logger_2.readLog; } });
 Object.defineProperty(exports, "printHistory", { enumerable: true, get: function () { return logger_2.printHistory; } });
+var config_2 = require("./config");
+Object.defineProperty(exports, "loadConfig", { enumerable: true, get: function () { return config_2.loadConfig; } });
+Object.defineProperty(exports, "loadConfigFile", { enumerable: true, get: function () { return config_2.loadConfigFile; } });
+Object.defineProperty(exports, "mergeConfig", { enumerable: true, get: function () { return config_2.mergeConfig; } });
 var fileTools_1 = require("./adapters/openai/fileTools");
 Object.defineProperty(exports, "createPatchGateFileTools", { enumerable: true, get: function () { return fileTools_1.createPatchGateFileTools; } });
 __exportStar(require("./adapters/openai/types"), exports);
+var fileTools_2 = require("./adapters/claude/fileTools");
+Object.defineProperty(exports, "createClaudeFileTools", { enumerable: true, get: function () { return fileTools_2.createClaudeFileTools; } });
+__exportStar(require("./adapters/claude/types"), exports);
 /**
  * THE MAIN FUNCTION.
  *
@@ -62,8 +70,21 @@ __exportStar(require("./adapters/openai/types"), exports);
 async function run(patchSet, options = {}) {
     const startTime = Date.now();
     const workdir = options.workdir ?? process.cwd();
+    // Load config from patchgate.config.json if it exists
+    const fileConfig = (0, config_1.loadConfig)(workdir);
+    // Map file config to PatchGateConfig (merge with options.config)
     const config = {
         ...types_1.DEFAULT_CONFIG,
+        // Merge file config blocklist with default blocklist
+        blocklist: [
+            ...types_1.DEFAULT_CONFIG.blocklist,
+            ...(fileConfig.blocklist ?? []),
+        ],
+        // Override with failOnBlocked from file config if present
+        ...(fileConfig.failOnBlocked !== undefined && {
+            failOnBlocked: fileConfig.failOnBlocked,
+        }),
+        // Apply runtime overrides (options.config) last — highest precedence
         ...(options.config ?? {}),
     };
     const fullPatchSet = {
@@ -115,7 +136,7 @@ async function run(patchSet, options = {}) {
         }
     }
     // 3. Apply
-    const result = (0, executor_1.applyPatches)(allowed, workdir, config.enableSnapshot);
+    const result = (0, executor_1.applyPatches)(allowed, workdir, config.enableSnapshot, config.dryRun);
     // 4. Log
     const logEntry = (0, logger_1.buildLogEntry)(fullPatchSet, result, blocked.map((b) => ({ path: b.patch.path, reason: b.reason })), startTime);
     (0, logger_1.writeLog)(logEntry, workdir);

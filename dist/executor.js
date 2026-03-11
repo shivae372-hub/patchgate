@@ -61,6 +61,16 @@ function rollback(snapshotDir, workdir = process.cwd()) {
             if (fs_1.default.existsSync(targetFile))
                 fs_1.default.unlinkSync(targetFile);
         }
+        else if (entry.op === "rename") {
+            // For rename: delete the renamed target and restore original
+            const renamedTarget = path_1.default.join(workdir, entry.newPath);
+            if (fs_1.default.existsSync(renamedTarget))
+                fs_1.default.unlinkSync(renamedTarget);
+            if (fs_1.default.existsSync(snapshotFile)) {
+                fs_1.default.mkdirSync(path_1.default.dirname(targetFile), { recursive: true });
+                fs_1.default.copyFileSync(snapshotFile, targetFile);
+            }
+        }
         else {
             if (fs_1.default.existsSync(snapshotFile)) {
                 fs_1.default.mkdirSync(path_1.default.dirname(targetFile), { recursive: true });
@@ -72,19 +82,21 @@ function rollback(snapshotDir, workdir = process.cwd()) {
 /**
  * Apply already-approved patches.
  */
-function applyPatches(patches, workdir = process.cwd(), enableSnapshot = true) {
+function applyPatches(patches, workdir = process.cwd(), enableSnapshot = true, dryRun = false) {
     const result = {
         success: false,
         applied: [],
         skipped: [],
         errors: [],
     };
-    if (enableSnapshot && patches.length > 0) {
+    if (enableSnapshot && patches.length > 0 && !dryRun) {
         result.snapshotPath = saveSnapshot(patches, workdir);
     }
     for (const patch of patches) {
         try {
-            applyOne(patch, workdir);
+            if (!dryRun) {
+                applyOne(patch, workdir);
+            }
             result.applied.push(patch.path);
         }
         catch (err) {

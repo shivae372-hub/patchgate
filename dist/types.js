@@ -10,5 +10,6 @@ exports.DEFAULT_CONFIG = {
     enableSnapshot: true,
     runTypecheck: false,
     failOnBlocked: false,
+    dryRun: false,
 };
 //# sourceMappingURL=types.js.map

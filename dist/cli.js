@@ -66,9 +66,10 @@ async function main() {
 async function cmdApply() {
     const patchFile = args[1];
     if (!patchFile) {
-        console.error("❌ Usage: patchgate apply <patch-file.json>");
+        console.error("❌ Usage: patchgate apply <patch-file.json> [--dry-run]");
         process.exit(1);
     }
+    const dryRun = args.includes("--dry-run");
     const fullPath = path_1.default.resolve(patchFile);
     if (!fs_1.default.existsSync(fullPath)) {
         console.error(`❌ File not found: ${fullPath}`);
@@ -82,8 +83,9 @@ async function cmdApply() {
         console.error(`❌ Could not parse patch file: ${e}`);
         process.exit(1);
     }
-    console.log(`\n🔍 PatchGate — Applying ${patchSet.patches.length} patch(es)\n`);
+    console.log(`\n🔍 PatchGate — Applying ${patchSet.patches.length} patch(es)${dryRun ? " (DRY RUN)" : ""}\n`);
     const result = await (0, index_1.run)(patchSet, {
+        config: { dryRun },
         onPreview: async (diffs) => {
             console.log("── Planned Changes ─────────────────────────────────");
             for (const diff of diffs) {
@@ -177,10 +179,13 @@ function printHelp() {
   PatchGate — Policy enforcement and rollback for AI agent code edits
 
   Usage:
-    patchgate apply <patch.json>      Apply patches with policy check + snapshot
-    patchgate preview <patch.json>    Preview diffs without writing anything
-    patchgate rollback <snapshot>     Undo the last patch application
-    patchgate history                 Show audit log of past runs
+    patchgate apply <patch.json> [--dry-run]   Apply patches with policy check + snapshot
+    patchgate preview <patch.json>              Preview diffs without writing anything
+    patchgate rollback <snapshot>               Undo the last patch application
+    patchgate history                           Show audit log of past runs
+
+  Options:
+    --dry-run    Simulate the full pipeline without actual filesystem writes
 
   Example patch.json:
     {

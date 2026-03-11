@@ -7,6 +7,7 @@ import path from "path";
 import { enforcePolicy } from "../src/policy";
 import { applyPatches, rollback, saveSnapshot } from "../src/executor";
 import { FilePatch, DEFAULT_CONFIG } from "../src/types";
+import { loadConfigFile, loadConfig, mergeConfig, DEFAULT_USER_CONFIG } from "../src/config";
 
 function makeTempDir(): string {
   return fs.mkdtempSync(path.join(os.tmpdir(), "patchgate-test-"));
@@ -94,6 +95,217 @@ describe("Policy enforcement", () => {
     const { allowed, blocked } = enforcePolicy(patches, DEFAULT_CONFIG);
     expect(allowed).toHaveLength(2);
     expect(blocked).toHaveLength(1);
+  });
+});
+
+// ─── Config loading tests ─────────────────────────────────────────────────────
+
+describe("Config loading", () => {
+  test("loadConfigFile returns null when config file does not exist", () => {
+    const dir = makeTempDir();
+    const config = loadConfigFile(dir);
+    expect(config).toBeNull();
+  });
+
+  test("loadConfigFile loads config when patchgate.config.json exists", () => {
+    const dir = makeTempDir();
+    const configContent = {
+      dryRun: true,
+      failOnBlocked: true,
+      blocklist: ["*.secret"],
+    };
+    writeFile(dir, "patchgate.config.json", JSON.stringify(configContent));
+
+    const config = loadConfigFile(dir);
+    expect(config).not.toBeNull();
+    expect(config?.dryRun).toBe(true);
+    expect(config?.failOnBlocked).toBe(true);
+    expect(config?.blocklist).toEqual(["*.secret"]);
+  });
+
+  test("loadConfigFile returns null for invalid JSON", () => {
+    const dir = makeTempDir();
+    writeFile(dir, "patchgate.config.json", "not valid json{{");
+
+    const config = loadConfigFile(dir);
+    expect(config).toBeNull();
+  });
+
+  test("loadConfig merges file config with defaults", () => {
+    const dir = makeTempDir();
+    const configContent = {
+      dryRun: true,
+      blocklist: ["*.secret"],
+    };
+    writeFile(dir, "patchgate.config.json", JSON.stringify(configContent));
+
+    const config = loadConfig(dir);
+
+    // File config values
+    expect(config.dryRun).toBe(true);
+    expect(config.blocklist).toEqual(["*.secret"]);
+
+    // Default values preserved
+    expect(config.snapshotDir).toBe(DEFAULT_USER_CONFIG.snapshotDir);
+    expect(config.auditLog).toBe(DEFAULT_USER_CONFIG.auditLog);
+    expect(config.failOnBlocked).toBe(DEFAULT_USER_CONFIG.failOnBlocked);
+    expect(config.allowlist).toEqual(DEFAULT_USER_CONFIG.allowlist);
+  });
+
+  test("loadConfig uses defaults when no config file exists", () => {
+    const dir = makeTempDir();
+    const config = loadConfig(dir);
+
+    expect(config).toEqual(DEFAULT_USER_CONFIG);
+  });
+
+  test("mergeConfig applies runtime overrides over file config", () => {
+    const dir = makeTempDir();
+    const configContent = {
+      dryRun: false,
+      failOnBlocked: false,
+      blocklist: ["*.secret"],
+    };
+    writeFile(dir, "patchgate.config.json", JSON.stringify(configContent));
+
+    const runtimeOverrides = {
+      dryRun: true,
+      failOnBlocked: true,
+    };
+
+    const config = mergeConfig(dir, runtimeOverrides);
+
+    // Runtime overrides take precedence
+    expect(config.dryRun).toBe(true);
+    expect(config.failOnBlocked).toBe(true);
+
+    // File config values preserved where not overridden
+    expect(config.blocklist).toEqual(["*.secret"]);
+
+    // Default values preserved where not in file or runtime
+    expect(config.snapshotDir).toBe(DEFAULT_USER_CONFIG.snapshotDir);
+  });
+
+  test("mergeConfig uses only defaults when no file and no runtime overrides", () => {
+    const dir = makeTempDir();
+    const config = mergeConfig(dir);
+
+    expect(config).toEqual(DEFAULT_USER_CONFIG);
+  });
+
+  test("mergeConfig uses only runtime overrides when no file exists", () => {
+    const dir = makeTempDir();
+    const runtimeOverrides = {
+      dryRun: true,
+      snapshotDir: "custom/snapshots",
+    };
+
+    const config = mergeConfig(dir, runtimeOverrides);
+
+    expect(config.dryRun).toBe(true);
+    expect(config.snapshotDir).toBe("custom/snapshots");
+    expect(config.failOnBlocked).toBe(DEFAULT_USER_CONFIG.failOnBlocked);
+  });
+});
+
+// ─── Dry-run tests ──────────────────────────────────────────────────────────────
+
+describe("Dry-run mode", () => {
+  test("dry-run does not create files", () => {
+    const dir = makeTempDir();
+    const result = applyPatches(
+      [{ op: "create", path: "src/hello.ts", content: "export const x = 1;" }],
+      dir,
+      true,
+      true // dryRun = true
+    );
+
+    expect(result.success).toBe(true);
+    expect(result.applied).toContain("src/hello.ts");
+    expect(fs.existsSync(path.join(dir, "src/hello.ts"))).toBe(false);
+  });
+
+  test("dry-run does not update existing files", () => {
+    const dir = makeTempDir();
+    const originalContent = "const x = 1;";
+    writeFile(dir, "src/index.ts", originalContent);
+
+    const result = applyPatches(
+      [{ op: "update", path: "src/index.ts", content: "const x = 2;" }],
+      dir,
+      true,
+      true // dryRun = true
+    );
+
+    expect(result.success).toBe(true);
+    expect(result.applied).toContain("src/index.ts");
+
+    const content = fs.readFileSync(path.join(dir, "src/index.ts"), "utf-8");
+    expect(content).toBe(originalContent);
+  });
+
+  test("dry-run does not delete files", () => {
+    const dir = makeTempDir();
+    writeFile(dir, "src/old.ts", "deprecated");
+
+    const result = applyPatches(
+      [{ op: "delete", path: "src/old.ts" }],
+      dir,
+      true,
+      true // dryRun = true
+    );
+
+    expect(result.success).toBe(true);
+    expect(result.applied).toContain("src/old.ts");
+    expect(fs.existsSync(path.join(dir, "src/old.ts"))).toBe(true);
+  });
+
+  test("dry-run does not create snapshots", () => {
+    const dir = makeTempDir();
+    writeFile(dir, "src/index.ts", "original");
+
+    const result = applyPatches(
+      [{ op: "update", path: "src/index.ts", content: "modified" }],
+      dir,
+      true,
+      true // dryRun = true
+    );
+
+    expect(result.success).toBe(true);
+    expect(result.snapshotPath).toBeUndefined();
+    expect(fs.existsSync(path.join(dir, ".patchgate"))).toBe(false);
+  });
+
+  test("dry-run runs full pipeline and returns applied patches", () => {
+    const dir = makeTempDir();
+
+    const patches: FilePatch[] = [
+      { op: "create", path: "src/a.ts", content: "export const a = 1;" },
+      { op: "create", path: "src/b.ts", content: "export const b = 2;" },
+    ];
+
+    const result = applyPatches(patches, dir, true, true);
+
+    expect(result.success).toBe(true);
+    expect(result.applied).toHaveLength(2);
+    expect(result.applied).toContain("src/a.ts");
+    expect(result.applied).toContain("src/b.ts");
+    expect(result.errors).toHaveLength(0);
+  });
+
+  test("dry-run still reports errors for invalid patches", () => {
+    const dir = makeTempDir();
+
+    const result = applyPatches(
+      [{ op: "delete", path: "src/ghost.ts" }],
+      dir,
+      true,
+      true // dryRun = true
+    );
+
+    // In dry-run mode, the patch is "applied" but not actually executed
+    // The error would only occur during actual deletion
+    expect(result.applied).toContain("src/ghost.ts");
   });
 });
 

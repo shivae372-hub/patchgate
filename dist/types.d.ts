@@ -53,6 +53,14 @@ export interface PatchGateConfig {
      * Default: false
      */
     failOnBlocked?: boolean;
+    /**
+     * Dry-run mode: if true, PatchGate runs the full pipeline
+     * including policy checks and preview, but skips actual
+     * filesystem writes.
+     *
+     * Default: false
+     */
+    dryRun?: boolean;
 }
 export declare const DEFAULT_CONFIG: PatchGateConfig;
 //# sourceMappingURL=types.d.ts.map

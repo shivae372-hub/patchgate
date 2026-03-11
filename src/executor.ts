@@ -73,6 +73,14 @@ export function rollback(snapshotDir: string, workdir: string = process.cwd()) {
 
     if (entry.op === "create") {
       if (fs.existsSync(targetFile)) fs.unlinkSync(targetFile);
+    } else if (entry.op === "rename") {
+      // For rename: delete the renamed target and restore original
+      const renamedTarget = path.join(workdir, entry.newPath);
+      if (fs.existsSync(renamedTarget)) fs.unlinkSync(renamedTarget);
+      if (fs.existsSync(snapshotFile)) {
+        fs.mkdirSync(path.dirname(targetFile), { recursive: true });
+        fs.copyFileSync(snapshotFile, targetFile);
+      }
     } else {
       if (fs.existsSync(snapshotFile)) {
         fs.mkdirSync(path.dirname(targetFile), { recursive: true });
@@ -88,7 +96,8 @@ export function rollback(snapshotDir: string, workdir: string = process.cwd()) {
 export function applyPatches(
   patches: FilePatch[],
   workdir: string = process.cwd(),
-  enableSnapshot: boolean = true
+  enableSnapshot: boolean = true,
+  dryRun: boolean = false
 ): ApplyResult {
   const result: ApplyResult = {
     success: false,
@@ -97,13 +106,15 @@ export function applyPatches(
     errors: [],
   };
 
-  if (enableSnapshot && patches.length > 0) {
+  if (enableSnapshot && patches.length > 0 && !dryRun) {
     result.snapshotPath = saveSnapshot(patches, workdir);
   }
 
   for (const patch of patches) {
     try {
-      applyOne(patch, workdir);
+      if (!dryRun) {
+        applyOne(patch, workdir);
+      }
       result.applied.push(patch.path);
     } catch (err: any) {
       result.errors.push({ path: patch.path, message: err.message });

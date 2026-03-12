@@ -367,7 +367,7 @@ Example `patchgate.config.json`:
 | Dry-run mode | ✅ Working | Full pipeline simulation |
 | OpenAI adapter | ✅ Working | Function calling tools |
 | Claude adapter | ✅ Working | Tool_use tools |
-| Directory operations | ❌ Not built | `mkdir`, `rmdir` planned for v0.5 |
+| Directory operations | ✅ Working | `mkdir`, `rmdir` with protected dir policy |
 | Plugin system | ❌ Not built | Custom policy rules planned for v0.6 |
 
 ---

@@ -4,3 +4,13 @@ coverage
 .env
 .patchgate
 .DS_Store
+src/**/*.js
+AI_RULES.md
+ARCHITECTURE.md
+MODULE_REGISTRY.md
+PROJECT_PLAN.md
+PROJECT_STATE.md
+SESSION_LOG.md
+SESSION_PROMPT.md
+TODO.md
+patchgate.config.json

@@ -6,7 +6,9 @@ export type PatchOperation =
   | "create"   // AI wants to create a new file
   | "update"   // AI wants to edit an existing file
   | "delete"   // AI wants to delete a file
-  | "rename";  // AI wants to rename/move a file
+  | "rename"   // AI wants to rename/move a file
+  | "mkdir"    // AI wants to create a directory
+  | "rmdir";   // AI wants to remove a directory
 
 export interface FilePatch {
   /** What kind of change is this? */

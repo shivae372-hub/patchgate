@@ -164,6 +164,19 @@ function applyOne(patch: FilePatch, workdir: string) {
       break;
     }
 
+    case "mkdir": {
+      fs.mkdirSync(fullPath, { recursive: true });
+      break;
+    }
+
+    case "rmdir": {
+      if (!fs.existsSync(fullPath)) {
+        throw new Error(`Cannot remove directory: ${patch.path} does not exist.`);
+      }
+      fs.rmdirSync(fullPath);
+      break;
+    }
+
     default:
       throw new Error("Unknown patch operation.");
   }
@@ -177,8 +190,10 @@ export function generateDiff(
   workdir: string = process.cwd()
 ): string {
   if (patch.op === "delete") return `[-] DELETE  ${patch.path}`;
+  if (patch.op === "rmdir") return `[-] RMDIR   ${patch.path}`;
   if (patch.op === "rename")
     return `[~] RENAME  ${patch.path} → ${patch.newPath}`;
+  if (patch.op === "mkdir") return `[+] MKDIR   ${patch.path}`;
 
   if (patch.op === "create") {
     return `[+] CREATE  ${patch.path}`;

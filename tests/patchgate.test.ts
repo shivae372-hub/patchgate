@@ -410,3 +410,119 @@ describe("Snapshot and rollback", () => {
     expect(manifest.files.map((f: any) => f.path)).toContain("src/a.ts");
   });
 });
+
+// ─── Directory operations tests ───────────────────────────────────────────────
+
+describe("Directory operations", () => {
+  test("mkdir creates directory successfully", () => {
+    const dir = makeTempDir();
+    const result = applyPatches(
+      [{ op: "mkdir", path: "src/components" }],
+      dir, false
+    );
+    expect(result.success).toBe(true);
+    expect(result.applied).toContain("src/components");
+    expect(fs.existsSync(path.join(dir, "src/components"))).toBe(true);
+    expect(fs.statSync(path.join(dir, "src/components")).isDirectory()).toBe(true);
+  });
+
+  test("mkdir creates nested directories with recursive option", () => {
+    const dir = makeTempDir();
+    const result = applyPatches(
+      [{ op: "mkdir", path: "src/features/auth/providers" }],
+      dir, false
+    );
+    expect(result.success).toBe(true);
+    expect(fs.existsSync(path.join(dir, "src/features/auth/providers"))).toBe(true);
+  });
+
+  test("rmdir removes directory successfully", () => {
+    const dir = makeTempDir();
+    // Create a directory first
+    fs.mkdirSync(path.join(dir, "src/old"), { recursive: true });
+
+    const result = applyPatches(
+      [{ op: "rmdir", path: "src/old" }],
+      dir, false
+    );
+    expect(result.success).toBe(true);
+    expect(result.applied).toContain("src/old");
+    expect(fs.existsSync(path.join(dir, "src/old"))).toBe(false);
+  });
+
+  test("mkdir blocked for .git/", () => {
+    const patches: FilePatch[] = [
+      { op: "mkdir", path: ".git/hooks" },
+    ];
+    const { allowed, blocked } = enforcePolicy(patches, DEFAULT_CONFIG);
+    expect(allowed).toHaveLength(0);
+    expect(blocked).toHaveLength(1);
+    // Blocked by the .git/** pattern in default blocklist
+    expect(blocked[0].reason).toContain(".git");
+  });
+
+  test("mkdir blocked for node_modules/", () => {
+    const patches: FilePatch[] = [
+      { op: "mkdir", path: "node_modules/lodash" },
+    ];
+    const { allowed, blocked } = enforcePolicy(patches, DEFAULT_CONFIG);
+    expect(allowed).toHaveLength(0);
+    expect(blocked).toHaveLength(1);
+    // Blocked by the node_modules/** pattern in default blocklist
+    expect(blocked[0].reason).toContain("node_modules");
+  });
+
+  test("mkdir blocked for .patchgate/ by protected directory check", () => {
+    const patches: FilePatch[] = [
+      { op: "mkdir", path: ".patchgate/snapshots" },
+    ];
+    const { allowed, blocked } = enforcePolicy(patches, DEFAULT_CONFIG);
+    expect(allowed).toHaveLength(0);
+    expect(blocked).toHaveLength(1);
+    // .patchgate is not in default blocklist, caught by protected directory check
+    expect(blocked[0].reason).toContain("protected directory");
+  });
+
+  test("rmdir blocked for .git/", () => {
+    const patches: FilePatch[] = [
+      { op: "rmdir", path: ".git/objects" },
+    ];
+    const { allowed, blocked } = enforcePolicy(patches, DEFAULT_CONFIG);
+    expect(allowed).toHaveLength(0);
+    expect(blocked).toHaveLength(1);
+    // Blocked by the .git/** pattern in default blocklist
+    expect(blocked[0].reason).toContain(".git");
+  });
+
+  test("rmdir blocked for node_modules/", () => {
+    const patches: FilePatch[] = [
+      { op: "rmdir", path: "node_modules/express" },
+    ];
+    const { allowed, blocked } = enforcePolicy(patches, DEFAULT_CONFIG);
+    expect(allowed).toHaveLength(0);
+    expect(blocked).toHaveLength(1);
+    // Blocked by the node_modules/** pattern in default blocklist
+    expect(blocked[0].reason).toContain("node_modules");
+  });
+
+  test("rmdir blocked for .patchgate/ by protected directory check", () => {
+    const patches: FilePatch[] = [
+      { op: "rmdir", path: ".patchgate" },
+    ];
+    const { allowed, blocked } = enforcePolicy(patches, DEFAULT_CONFIG);
+    expect(allowed).toHaveLength(0);
+    expect(blocked).toHaveLength(1);
+    // .patchgate is not in default blocklist, caught by protected directory check
+    expect(blocked[0].reason).toContain("protected directory");
+  });
+
+  test("directory operations blocked on path traversal", () => {
+    const patches: FilePatch[] = [
+      { op: "mkdir", path: "../../etc" },
+    ];
+    const { allowed, blocked } = enforcePolicy(patches, DEFAULT_CONFIG);
+    expect(allowed).toHaveLength(0);
+    expect(blocked).toHaveLength(1);
+    expect(blocked[0].reason).toContain("traversal");
+  });
+});

@@ -17,6 +17,9 @@ export interface PolicyResult {
   blocked: PolicyViolation[];
 }
 
+// Directories that cannot be modified by directory operations
+const PROTECTED_DIRS = [".git", "node_modules", ".patchgate"];
+
 /**
  * Check every patch against policy rules.
  * Returns which patches are allowed and which are blocked — and why.
@@ -78,6 +81,16 @@ function checkPatch(patch: FilePatch, blocklist: string[]): string | null {
 );
     if (newMatched) {
       return `Rename destination blocked by policy "${newMatched}": "${patch.newPath}"`;
+    }
+  }
+
+  // For directory operations, block protected directories
+  if (patch.op === "mkdir" || patch.op === "rmdir") {
+    const pathParts = targetPath.split(/[/\\]/);
+    for (const part of pathParts) {
+      if (PROTECTED_DIRS.includes(part)) {
+        return `Directory operation blocked on protected directory "${part}": "${targetPath}"`;
+      }
     }
   }
 
